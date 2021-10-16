@@ -140,6 +140,44 @@ def process_image(img):
 
     return img
 
+def get_loaders(path_to_images, path_to_transcript, batch_size):
+  """
+  params
+  ---
+  path_to_images : string
+    paths to the folder with png/jpg images
+
+  path_to_transcript : string
+    path to tsv file with transcript in the following format:
+    image1.jpg  transcript1
+    image2.jpg  transcript2
+    ...         ...
+  
+  batch_size : int
+
+  returns
+  ---
+
+  """
+
+  img2label, chars, all_words = process_data(path_to_images, path_to_transcript)
+  X, y = [], []
+  char2idx = {char: idx for idx, char in enumerate(chars)}
+  idx2char = {idx: char for idx, char in enumerate(chars)}
+  items = list(img2label.items())
+  random.shuffle(items)
+  for i, item in enumerate(items):
+      X.append(item[0])
+      y.append(item[1])
+  X = generate_data(X)
+  train_dataset = TextLoader(X, y, char2idx, idx2char, eval=False)
+  train_loader = torch.utils.data.DataLoader(train_dataset, shuffle=True,
+                                           batch_size=batch_size, pin_memory=True,
+                                           drop_last=True, collate_fn=TextCollate())
+  del train_dataset, X, y
+  gc.collect()
+  return train_loader
+
 # decode predictions of a model; get characters
 def decode(preds):
   text = ''
