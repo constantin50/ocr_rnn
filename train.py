@@ -3,8 +3,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from paths import *
+from config import *
 
-def train(model, criterion, optimizer, train_loader,valid_loader,epochs):
+def train(model, criterion, optimizer, train_loader, valid_loader, epochs):
     """
     params
     ---
@@ -40,14 +41,14 @@ def train(model, criterion, optimizer, train_loader,valid_loader,epochs):
         length = torch.tensor(length)
         optimizer.zero_grad()
         preds = model(X)
-        preds_size = Variable(torch.LongTensor([preds.size(0)] * BATCH_SIZE))
+        preds_size = Variable(torch.LongTensor([preds.size(0)] * batch_size))
         _, temp = preds.max(2)
         #text = ''
         #temp = temp.transpose(1, 0).contiguous().view(-1).data
         #for p in temp:
         #  text += str(alphabet[p])
       
-        cost = criterion(preds, Y.transpose(0,1), preds_size, length) / BATCH_SIZE
+        cost = criterion(preds, Y.transpose(0,1), preds_size, length) / batch_size
         if torch.isnan(cost) or torch.isinf(cost):
           skipped += 1
           bad.append([X,Y])
