@@ -50,8 +50,6 @@ def train(model, criterion, optimizer, train_loader, valid_loader, epochs):
       
         cost = criterion(preds, Y.transpose(0,1), preds_size, length) / batch_size
         if torch.isnan(cost) or torch.isinf(cost):
-          skipped += 1
-          bad.append([X,Y])
           del cost
         else:
           cost.backward()
