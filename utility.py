@@ -139,3 +139,16 @@ def process_image(img):
         img = cv2.resize(img, (new_h, new_w))
 
     return img
+
+# decode predictions of a model; get characters
+def decode(preds):
+  text = ''
+  _, preds = preds.max(2)
+  preds = preds.transpose(1, 0).contiguous().view(-1).data
+  previous = None
+  for p in preds:
+    #print(p)
+    if p != previous and p != 0:
+      text += str(alphabet[p])
+      previous = p
+  return text
