@@ -60,4 +60,4 @@ class TextLoader(torch.utils.data.Dataset):
         return (torch.FloatTensor(img), torch.LongTensor(label))
 
     def __len__(self):
-        return len(self.labels
+        return len(self.labels)
