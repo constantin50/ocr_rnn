@@ -4,6 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from paths import *
 from config import *
+from torch.autograd import Variable
+import gc
 
 def train(model, criterion, optimizer, train_loader, epochs):
     """
