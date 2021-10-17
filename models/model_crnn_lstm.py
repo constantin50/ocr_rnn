@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torchvision import models
 from torch.nn import Conv2d, MaxPool2d
+from config import *
 
 class BidirectionalLSTM(nn.Module):
 
