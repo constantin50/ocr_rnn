@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torchvision import models
+from config import *
 
 class BidirectionalLSTM(nn.Module):
     def __init__(self, nIn, nHidden, nOut,dropout=0):
