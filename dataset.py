@@ -1,5 +1,8 @@
+import random
 import torch
 from torchvision import transforms
+from config import *
+from utility import *
 
 # MAKE TEXT TO BE THE SAME LENGTH
 class TextCollate():
@@ -38,8 +41,7 @@ class TextLoader(torch.utils.data.Dataset):
         self.transform = transforms.Compose([
             transforms.ToPILImage(),
             transforms.Resize((imgH,imgW)),
-            p.torch_transform(),  # random distortion and shear
-            transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
+            transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fill=255),
             transforms.transforms.GaussianBlur(3, sigma=(0.1, 1.9)),
             transforms.ToTensor()
         ])
