@@ -1,8 +1,12 @@
 from tqdm import tqdm
+import dataset
+from config import *
+from dataset import *
 import cv2
 import numpy as np
 import random
 import os
+import gc
 
 # convert images and labels into defined data structures
 def process_data(image_dir, labels_dir, ignore=[]):
@@ -123,14 +127,14 @@ def process_image(img):
     img : np.array
     """
     w, h, _ = img.shape
-    new_w = height
+    new_w = imgH
     new_h = int(h * (new_w / w))
     img = cv2.resize(img, (new_h, new_w))
     w, h, _ = img.shape
 
     img = img.astype('float32')
 
-    new_h = width
+    new_h = imgW
     if h < new_h:
         add_zeros = np.full((w, new_h - h, 3), 255)
         img = np.concatenate((img, add_zeros), axis=1)
@@ -140,7 +144,7 @@ def process_image(img):
 
     return img
 
-def get_loaders(path_to_images, path_to_transcript, batch_size):
+def get_loaders(path_to_images, path_to_transcript, alphabet=alphabet, batch_size=batch_size):
   """
   params
   ---
@@ -162,18 +166,18 @@ def get_loaders(path_to_images, path_to_transcript, batch_size):
 
   img2label, chars, all_words = process_data(path_to_images, path_to_transcript)
   X, y = [], []
-  char2idx = {char: idx for idx, char in enumerate(chars)}
-  idx2char = {idx: char for idx, char in enumerate(chars)}
+  char2idx = {char: idx for idx, char in enumerate(alphabet)}
+  idx2char = {idx: char for idx, char in enumerate(alphabet)}
   items = list(img2label.items())
   random.shuffle(items)
   for i, item in enumerate(items):
       X.append(item[0])
       y.append(item[1])
   X = generate_data(X)
-  train_dataset = TextLoader(X, y, char2idx, idx2char, eval=False)
+  train_dataset = dataset.TextLoader(X, y, char2idx, idx2char, eval=False)
   train_loader = torch.utils.data.DataLoader(train_dataset, shuffle=True,
                                            batch_size=batch_size, pin_memory=True,
-                                           drop_last=True, collate_fn=TextCollate())
+                                           drop_last=True, collate_fn=dataset.TextCollate())
   del train_dataset, X, y
   gc.collect()
   return train_loader
