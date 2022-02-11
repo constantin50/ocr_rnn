@@ -1,0 +1,4 @@
+torch
+torchvision
+textdistance==4.2.2
+Pillow==9.0.1
