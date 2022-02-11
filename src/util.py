@@ -1,3 +1,4 @@
+import os
 import time
 from tqdm import tqdm
 import torch
@@ -62,6 +63,7 @@ def predict(model, imagedir: str):
   transform_list =  [transforms.Grayscale(1),
                     transforms.ToTensor(), 
                     transforms.Normalize((0.5,), (0.5,))]
+  coder = LabelCoder(ALPHABET)
   transform = transforms.Compose(transform_list)
   result = {'image_name' : [], 'pred_label' : []}
   for filename in tqdm(os.listdir(imagedir)):
