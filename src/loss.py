@@ -18,9 +18,9 @@ class CustomCTCLoss(torch.nn.Module):
     def sanitize(self, loss):
         EPS = 1e-7
         if abs(loss.item() - float('inf')) < EPS:
-            return torch.zeros_like(loss)
+            return torch.zeros_like(loss, requires_grad = True)
         if math.isnan(loss.item()):
-            return torch.zeros_like(loss)
+            return torch.zeros_like(loss, requires_grad = True)
         return loss
 
     def debug(self, loss, logits, labels,
@@ -31,5 +31,5 @@ class CustomCTCLoss(torch.nn.Module):
             print("labels:", labels)
             print("prediction_sizes:", prediction_sizes)
             print("target_sizes:", target_sizes)
-            raise Exception("NaN loss obtained. But why?")
+            raise Exception("NaN loss obtained.")
         return loss
