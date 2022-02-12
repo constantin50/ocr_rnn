@@ -83,8 +83,9 @@ def predict(model, imagedir: str):
 
 def fit(model, optimizer, loss_fn, loader, epochs = 12):
     coder = LabelCoder(ALPHABET)
-    print('epoch | mean loss | mean cer | mean wer ')
+    print('epoch | mean loss | mean cer | mean wer | time')
     for epoch in range(epochs):
+        start_time = time.time()
         model.train()
         outputs = []
         for batch_nb, batch in enumerate(loader):
@@ -111,10 +112,12 @@ def fit(model, optimizer, loss_fn, loader, epochs = 12):
             output = {'loss': abs(loss.item()),'cer': char_error,'wer': word_error}
         
             outputs.append(output)
+        end_time = time.time()
         mean_loss = sum([outputs[i]['loss'] for i in range(len(outputs))])/len(outputs)
         char_error = sum([outputs[i]['cer'] for i in range(len(outputs))])/len(outputs)
         word_error = sum([outputs[i]['wer'] for i in range(len(outputs))])/len(outputs)
-        print(epoch, ' '*5 ,"%.3f" % mean_loss,' '*5, "%.3f" % char_error,' '*5, "%.3f" % word_error)
+        print(epoch, ' '*5 ,"%.3f" % mean_loss, ' '*5, "%.3f" % char_error,' '*5,\
+             "%.3f" % word_error, ' '*4, "%.1f" % float(end_time - start_time))
 
 def evaluate(model):
   coder = LabelCoder(ALPHABET)
