@@ -16,10 +16,8 @@ class CustomCTCLoss(torch.nn.Module):
     def sanitize(self, loss):
         EPS = 1e-7
         if abs(loss.item() - float('inf')) < EPS:
-            print("inf loss: batch has been zero out")
             return torch.zeros_like(loss, requires_grad = True)
         if math.isnan(loss.item()):
-            print("nan loss: batch has been zero out")
             return torch.zeros_like(loss, requires_grad = True)
         return loss
 
