@@ -1,3 +1,7 @@
+"""
+"Fine-tuning Handwriting Recognition systems with Temporal Dropout" https://arxiv.org/pdf/2102.00511v1.pdf
+"""
+
 import random
 import torch
 from torch import nn
@@ -30,10 +34,10 @@ class BidirectionalLSTM(nn.Module):
         return output
 
 
-class CRNN(nn.Module):
+class Model(nn.Module):
 
     def __init__(self, nChannels, nHidden, num_classes):
-        super(CRNN, self).__init__()
+        super(Model, self).__init__()
 
         self.act = LeakyReLU(negative_slope=0.01, inplace=False)
         self.conv0 = Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
