@@ -33,11 +33,13 @@ class BidirectionalLSTM(nn.Module):
         return output
 
 
-class CRNN(nn.Module):
+class Model(nn.Module):
 
-    def __init__(self, nChannels, nHidden, num_classes):
-        super(CRNN, self).__init__()
-
+    def __init__(self, nChannels, nHidden, num_classes, dropout = 0.2):
+        super(Model, self).__init__()
+        
+        self.dropout = dropout
+        
         self.act = LeakyReLU(negative_slope=0.01, inplace=False)
         self.conv0 = Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
         self.conv1 = Conv2d(64, 64, kernel_size=3, stride=1, padding=1)
@@ -91,7 +93,7 @@ class CRNN(nn.Module):
         b, c, h, w = x.size()
         assert h == 1, "the height of conv must be 1"
         x = x.squeeze(2) # [b, c, h*w]
-        x = TemporalDropout(x, 0.2)
+        x = TemporalDropout(x, self.dropout)
         x = x.permute(2, 0, 1)  # [h*w, b, c]
         output1 = self.rnn1(x)
         output2 = self.rnn2(x)
