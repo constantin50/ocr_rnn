@@ -1,6 +1,3 @@
-"""
-"Fine-tuning Handwriting Recognition systems with Temporal Dropout" https://arxiv.org/pdf/2102.00511v1.pdf
-"""
 import random
 import torch
 from torch import nn
