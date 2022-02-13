@@ -12,7 +12,7 @@ The list of models:
 
 **15.10.2021**
 
-```model2.py``` ResNet50 + Bidirectional LSTM + CTCLoss
+```model2.py``` ResNet50 + Bidirectional LSTM
 
 ```Model1.py``` [An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition](https://arxiv.org/abs/1507.05717)
 
