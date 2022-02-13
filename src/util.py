@@ -88,7 +88,6 @@ def fit(model, optimizer, loss_fn, loader, epochs = 12):
         start_time = time.time()
         model.train()
         outputs = []
-        zero_loss_counter = 0
         for batch_nb, batch in enumerate(loader):
             
             input_, targets = batch['img'], batch['label']
@@ -99,25 +98,24 @@ def fit(model, optimizer, loss_fn, loader, epochs = 12):
             pred_sizes = torch.LongTensor([T for i in range(B)])
             targets = targets.view(-1).contiguous()
             loss = loss_fn(logits, targets, pred_sizes, lengths)
-            # if loss was zero out
-            if (torch.zeros_like(loss) == loss).all():
-                zero_loss_counter += 1
             probs, preds = logits.max(2)
             preds = preds.transpose(1, 0).contiguous().view(-1)
             sim_preds = coder.decode(preds.data, pred_sizes.data, raw=False)
+
             char_error = sum([lev(batch['label'][i], sim_preds[i])/max(len(batch['label'][i]), len(sim_preds[i])) for i in range(len(batch['label']))])/len(batch['label'])
             word_error = 1 - sum([batch['label'][i] == sim_preds[i] for i in range(len(batch['label']))])/len(batch['label'])
+
             optimizer.zero_grad()
+            loss.backward()
             clip_grad_norm_(model.parameters(), 0.05)
             optimizer.step()
             output = {'loss': abs(loss.item()),'cer': char_error,'wer': word_error}
+        
             outputs.append(output)
-            
         end_time = time.time()
         mean_loss = sum([outputs[i]['loss'] for i in range(len(outputs))])/len(outputs)
         char_error = sum([outputs[i]['cer'] for i in range(len(outputs))])/len(outputs)
         word_error = sum([outputs[i]['wer'] for i in range(len(outputs))])/len(outputs)
-        print(f'{zero_loss_counter}/{len(loader)} losses have been zero out due to nan value')
         print(epoch, ' '*5 ,"%.3f" % mean_loss, ' '*5, "%.3f" % char_error,' '*5,\
              "%.3f" % word_error, ' '*4, "%.1f" % float(end_time - start_time))
 
