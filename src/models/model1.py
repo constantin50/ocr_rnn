@@ -1,3 +1,7 @@
+"""
+"An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition" https://arxiv.org/abs/1507.05717
+"""
+
 import torch
 from torch import nn
 from torch.nn import Conv2d, MaxPool2d, BatchNorm2d, ReLU
