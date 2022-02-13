@@ -19,10 +19,10 @@ class BidirectionalLSTM(nn.Module):
         output = output.view(T, b, -1)
         return output
 
-class ResNetRNN(nn.Module):
+class Model(nn.Module):
 
     def __init__(self, nHidden = 256):
-        super(ResNetRNN, self).__init__()
+        super(Model, self).__init__()
         self.resnet50 = models.resnet50(pretrained=True)
         self.resnet50.fc1 = nn.Conv2d(2048, 512, kernel_size=(2, 2))
         self.resnet50.fc2 = nn.Linear(8, 16)
