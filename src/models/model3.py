@@ -1,7 +1,3 @@
-"""
-"An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition" https://arxiv.org/abs/1507.05717
-"""
-
 import torch
 from torch import nn
 from torch.nn import Conv2d, MaxPool2d, BatchNorm2d, ReLU
@@ -9,9 +5,9 @@ from config import *
 
 class BidirectionalLSTM(nn.Module):
 
-    def __init__(self, nIn, nHidden, nOut, num_layers = 2):
+    def __init__(self, nIn, nHidden, nOut):
         super(BidirectionalLSTM, self).__init__()
-        self.rnn = nn.LSTM(nIn, nHidden, bidirectional=True, num_layers = num_layers)
+        self.rnn = nn.LSTM(nIn, nHidden, bidirectional=True)
         self.embedding = nn.Linear(nHidden * 2, nOut)
     def forward(self, input):
         self.rnn.flatten_parameters()
@@ -20,12 +16,12 @@ class BidirectionalLSTM(nn.Module):
         t_rec = recurrent.view(T * b, h)
         output = self.embedding(t_rec)  # [T * b, nOut]
         output = output.view(T, b, -1)
-        return outputt
+        return output
 
-class Model(nn.Module):
+class CRNN(nn.Module):
 
-    def __init__(self, nHidden, num_classes):
-        super(Model, self).__init__()
+    def __init__(self, nHidden = 256):
+        super(CRNN, self).__init__()
 
         self.conv0 = Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
         self.conv1 = Conv2d(64, 64, kernel_size=3, stride=1, padding=1)
@@ -48,19 +44,28 @@ class Model(nn.Module):
 
         self.rnn = nn.Sequential(
             BidirectionalLSTM(nHidden*2, nHidden, nHidden),
-            BidirectionalLSTM(nHidden, nHidden, num_classes))
+            BidirectionalLSTM(nHidden, nHidden, len(ALPHABET)))
 
 
     def forward(self, src):
         
         x = self.conv0(src)
-        x = self.bn1(self.pool1(self.conv1(x)))
+        x = self.conv1(x)
+        x = self.pool1(x)
+        x = self.bn1(x)
         x = self.conv2(x)
-        x = self.bn2(self.pool2(self.conv3(x)))
+        x = self.conv3(x)
+        x = self.pool2(x)
+        x = self.bn2(x)
         x = self.conv4(x)
-        x = self.bn3(self.pool3(self.conv5(x)))
+        x = self.conv5(x)
+        x = self.pool3(x)
+        x = self.bn3(x)
         x = self.conv6(x)
-        x = self.bn4(self.pool4(self.conv7(x)))
+        x = self.conv7(x)
+        x = self.pool4(x) # [1, 512, 3, 125]
+        x = self.bn4(x)
+        #print(x.shape)
         b, c, h, w = x.size()
         assert h == 1, "the height of conv must be 1"
         x = x.squeeze(2) # [b, c, h*w]
