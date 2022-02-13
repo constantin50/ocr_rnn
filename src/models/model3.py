@@ -18,10 +18,10 @@ class BidirectionalLSTM(nn.Module):
         output = output.view(T, b, -1)
         return output
 
-class Model(nn.Module):
+class CRNN(nn.Module):
 
     def __init__(self, nChannels, nHidden, num_classes):
-        super(Model, self).__init__()
+        super(CRNN, self).__init__()
 
         self.conv0 = Conv2d(1, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
         self.conv1 = Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
