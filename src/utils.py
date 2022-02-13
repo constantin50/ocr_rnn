@@ -5,6 +5,7 @@ import torch
 import torchvision.transforms as transforms
 from torch.nn.utils.clip_grad import clip_grad_norm_
 from textdistance import levenshtein as lev
+from PIL import Image
 
 from config import *
 
