@@ -82,15 +82,31 @@ def predict(model, imagedir: str):
   return result
 
 
+def print_epoch_data(epoch, mean_loss, char_error, word_error, time_elapsed, zero_out_losses):
+    if epoch == 0:
+        print('epoch | mean loss | mean cer | mean wer | time elapsed | warnings')
+    epoch_str = str(epoch)
+    zero_out_losses_str = str(zero_out_losses)
+    if len(epoch_str) < 2:
+        epoch_str = '0' + epoch_str
+    if len(zero_out_losses_str) < 2:
+        zero_out_losses_str = '0' + zero_out_losses_str
+    report_line = epoch_str + ' '*7 + "%.3f" % mean_loss + ' '*7 + "%.3f" % char_error + ' '*7 + \
+             "%.3f" % word_error + ' '*7 +  "%.1f" % float(time_elapsed)
+    if zero_out_losses != 0:
+        report_line += f'       {zero_out_losses} batch losses skipped due to nan value'
+    print(report_line)
+    
+    
 def fit(model, optimizer, loss_fn, loader, epochs = 12):
     coder = LabelCoder(ALPHABET)
-    print('epoch | mean loss | mean cer | mean wer | time')
     for epoch in range(epochs):
+        zero_out_losses = 0
         start_time = time.time()
         model.train()
         outputs = []
         for batch_nb, batch in enumerate(loader):
-            
+            optimizer.zero_grad()
             input_, targets = batch['img'], batch['label']
             targets, lengths = coder.encode(targets)
             logits = model(input_.to(DEVICE))
@@ -99,6 +115,11 @@ def fit(model, optimizer, loss_fn, loader, epochs = 12):
             pred_sizes = torch.LongTensor([T for i in range(B)])
             targets = targets.view(-1).contiguous()
             loss = loss_fn(logits, targets, pred_sizes, lengths)
+            if loss.item() > 100:
+                print(loss.item())
+            if (torch.zeros(loss.size()) == loss).all():
+                zero_out_losses += 1
+                continue
             probs, preds = logits.max(2)
             preds = preds.transpose(1, 0).contiguous().view(-1)
             sim_preds = coder.decode(preds.data, pred_sizes.data, raw=False)
@@ -106,19 +127,25 @@ def fit(model, optimizer, loss_fn, loader, epochs = 12):
             char_error = sum([lev(batch['label'][i], sim_preds[i])/max(len(batch['label'][i]), len(sim_preds[i])) for i in range(len(batch['label']))])/len(batch['label'])
             word_error = 1 - sum([batch['label'][i] == sim_preds[i] for i in range(len(batch['label']))])/len(batch['label'])
 
-            optimizer.zero_grad()
             loss.backward()
             clip_grad_norm_(model.parameters(), 0.05)
             optimizer.step()
             output = {'loss': abs(loss.item()),'cer': char_error,'wer': word_error}
-        
             outputs.append(output)
+            
         end_time = time.time()
+        if len(outputs) == 0:
+            print(f'{epoch} epoch skipped due to bad losses \n go to the last checkpoint')
+            model.load_state_dict(torch.load(PATH_TO_CHECKPOINT))
+            continue
         mean_loss = sum([outputs[i]['loss'] for i in range(len(outputs))])/len(outputs)
         char_error = sum([outputs[i]['cer'] for i in range(len(outputs))])/len(outputs)
         word_error = sum([outputs[i]['wer'] for i in range(len(outputs))])/len(outputs)
-        print(epoch, ' '*5 ,"%.3f" % mean_loss, ' '*5, "%.3f" % char_error,' '*5,\
-             "%.3f" % word_error, ' '*4, "%.1f" % float(end_time - start_time))
+        print_epoch_data(epoch, mean_loss, char_error, word_error, end_time - start_time, zero_out_losses)
+        if epoch%4 == 0:
+          torch.save(model.state_dict(), PATH_TO_CHECKPOINT)
+    return outputs 
+
 
 def evaluate(model):
   coder = LabelCoder(ALPHABET)
