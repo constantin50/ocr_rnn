@@ -36,7 +36,7 @@ class BidirectionalLSTM(nn.Module):
 
 class Model(nn.Module):
 
-    def __init__(self, nChannels, nHidden, num_classes):
+    def __init__(self, nHidden, num_classes):
         super(Model, self).__init__()
 
         self.act = LeakyReLU(negative_slope=0.01, inplace=False)
