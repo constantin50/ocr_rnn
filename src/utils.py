@@ -62,8 +62,9 @@ class LabelCoder(object):
 
 def predict(model, imagedir: str):
   transform_list =  [transforms.Grayscale(1),
-                    transforms.ToTensor(), 
-                    transforms.Normalize((0.5,), (0.5,))]
+                              transforms.Resize((64, 256)),
+                              transforms.ToTensor(), 
+                              transforms.Normalize((0.5,), (0.5,))]
   coder = LabelCoder(ALPHABET)
   transform = transforms.Compose(transform_list)
   result = {'image_name' : [], 'pred_label' : []}
@@ -147,21 +148,21 @@ def fit(model, optimizer, loss_fn, loader, epochs = 12):
     return outputs 
 
 
-def evaluate(model):
-  coder = LabelCoder(ALPHABET)
-  labels, predictions = [], []
-  for iteration, batch in enumerate(tqdm(loader)):
-      input_, targets = batch['img'].to(DEVICE), batch['label']
-      labels.extend(targets)
-      targets, _ = coder.encode(targets)
-      logits = model(input_)
-      logits = logits.contiguous().cpu()
-      T, B, H = logits.size()
-      pred_sizes = torch.LongTensor([T for i in range(B)])
-      probs, pos = logits.max(2)
-      pos = pos.transpose(1, 0).contiguous().view(-1)
-      sim_preds = coder.decode(pos.data, pred_sizes.data, raw=False)
-      predictions.extend(sim_preds)
-  char_error = sum([lev(labels[i], predictions[i]) for i in range(len(labels))])/len(labels)
-  word_error = 1 - sum([labels[i] == predictions[i] for i in range(len(labels))])/len(labels)
-  return {'char_error' : char_error, 'word_error' : word_error}
+def evaluate(model, loader):
+    coder = LabelCoder(ALPHABET)
+    labels, predictions = [], []
+    for iteration, batch in enumerate(tqdm(loader)):
+        input_, targets = batch['img'].to(DEVICE), batch['label']
+        labels.extend(targets)
+        targets, _ = coder.encode(targets)
+        logits = model(input_)
+        logits = logits.contiguous().cpu()
+        T, B, H = logits.size()
+        pred_sizes = torch.LongTensor([T for i in range(B)])
+        probs, pos = logits.max(2)
+        pos = pos.transpose(1, 0).contiguous().view(-1)
+        sim_preds = coder.decode(pos.data, pred_sizes.data, raw=False)
+        predictions.extend(sim_preds)
+    char_error = sum([lev(labels[i], predictions[i])/max(len(labels[i]), len(predictions[i])) for i in range(len(labels))])/len(labels)
+    word_error = 1 - sum([labels[i] == predictions[i] for i in range(len(labels))])/len(labels)
+    return {'char_error' : char_error, 'word_error' : word_error}
