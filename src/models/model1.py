@@ -22,10 +22,10 @@ class BidirectionalLSTM(nn.Module):
         output = output.view(T, b, -1)
         return output
 
-class CRNN(nn.Module):
+class Model(nn.Module):
 
-    def __init__(self, nHidden = 256):
-        super(CRNN, self).__init__()
+    def __init__(self, nHidden, num_classes):
+        super(Model, self).__init__()
 
         self.conv0 = Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
         self.conv1 = Conv2d(64, 64, kernel_size=3, stride=1, padding=1)
@@ -48,28 +48,19 @@ class CRNN(nn.Module):
 
         self.rnn = nn.Sequential(
             BidirectionalLSTM(nHidden*2, nHidden, nHidden),
-            BidirectionalLSTM(nHidden, nHidden, len(ALPHABET)))
+            BidirectionalLSTM(nHidden, nHidden, num_classes))
 
 
     def forward(self, src):
         
         x = self.conv0(src)
-        x = self.conv1(x)
-        x = self.pool1(x)
-        x = self.bn1(x)
+        x = self.bn1(self.pool1(self.conv1(x)))
         x = self.conv2(x)
-        x = self.conv3(x)
-        x = self.pool2(x)
-        x = self.bn2(x)
+        x = self.bn2(self.pool2(self.conv3(x)))
         x = self.conv4(x)
-        x = self.conv5(x)
-        x = self.pool3(x)
-        x = self.bn3(x)
+        x = self.bn3(self.pool3(self.conv5(x)))
         x = self.conv6(x)
-        x = self.conv7(x)
-        x = self.pool4(x) # [1, 512, 3, 125]
-        x = self.bn4(x)
-        #print(x.shape)
+        x = self.bn4(self.pool4(self.conv7(x)))
         b, c, h, w = x.size()
         assert h == 1, "the height of conv must be 1"
         x = x.squeeze(2) # [b, c, h*w]
