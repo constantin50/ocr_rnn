@@ -48,7 +48,7 @@ class Model(nn.Module):
 
         self.rnn = nn.Sequential(
             BidirectionalLSTM(nHidden*2, nHidden, nHidden),
-            BidirectionalLSTM(nHidden, nHidden, num_classes))
+            BidirectionalLSTM(nHidden, nHidden, len(ALPHABET))
 
 
     def forward(self, src):
