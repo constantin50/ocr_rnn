@@ -116,8 +116,6 @@ def fit(model, optimizer, loss_fn, loader, epochs = 12):
             pred_sizes = torch.LongTensor([T for i in range(B)])
             targets = targets.view(-1).contiguous()
             loss = loss_fn(logits, targets, pred_sizes, lengths)
-            if loss.item() > 100:
-                print(loss.item())
             if (torch.zeros(loss.size()) == loss).all():
                 zero_out_losses += 1
                 continue
